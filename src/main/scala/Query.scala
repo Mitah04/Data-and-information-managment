@@ -6,12 +6,13 @@ case class Query(queryId : Int, head : Atom, body : List[Atom]) {
 }
 
 
-def parseQuery(id: Int, rawQuery: String): Query = {
+private def parseQuery(id: Int, rawQuery: String): Query = {
   val Array(headStr, bodyStr) = rawQuery.split(" :- ")
   val head = createAtom(headStr).getOrElse(
     throw new IllegalArgumentException("Invalid head format.")
   )
-  val rawBody = bodyStr.split(",")
+  val atomPattern = raw"([A-Za-z]+\([^)]*\))".r
+  val rawBody = atomPattern.findAllIn(bodyStr)
   val body = rawBody.toList.map(rawAtom =>
     createAtom(rawAtom).getOrElse(
       throw new IllegalArgumentException("Invalid atom format.")
@@ -19,4 +20,3 @@ def parseQuery(id: Int, rawQuery: String): Query = {
   )
   Query(id, head, body)
 }
-

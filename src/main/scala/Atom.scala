@@ -1,6 +1,6 @@
 case class Atom(relationName: String, terms: List[String]) {
   override def toString: String = {
-    val termsStr = if (terms.isEmpty) "" else "(" + terms.mkString(", ") + ")"
+    val termsStr = if (terms.isEmpty) "()" else "(" + terms.mkString(", ") + ")"
     s"$relationName$termsStr"
   }
 
