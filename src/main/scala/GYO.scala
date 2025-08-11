@@ -2,14 +2,23 @@ import scala.collection.mutable.ListBuffer
 
 object GyoAlgo {
 
+  var logger: ListBuffer[String] = ListBuffer()
+  
+  
+
 
   def isAcyclic(query: Query): Boolean = {
+    logger.clear()
+    logger += s"GYO for query: ${query.head}\n"
     var ear = findEar(query)
     while (ear.isDefined) {
-      println(ear.get)
+      logger += s"Remove ear: ${ear.get}"
       query.body -= ear.get // suppression directe
+      logger += s".\n Current query is: ${query}\n"
       ear = findEar(query)
     }
+    if (query.body.nonEmpty) logger += "No more ears found"
+    writeInFile(c, logger.mkString("\n"))
     query.body.isEmpty
   }
 
@@ -41,6 +50,7 @@ object GyoAlgo {
       }
 
       if (potentialWitnesses.nonEmpty) {
+        logger += s" with witness: ${potentialWitnesses.head}"
         Left(potentialWitnesses.head)
       }
       else {
