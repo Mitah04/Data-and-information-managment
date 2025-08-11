@@ -1,4 +1,6 @@
-case class Query(queryId : Int, head : Atom, body : List[Atom]) {
+import scala.collection.mutable.ListBuffer
+
+case class Query(queryId : Int, head : Atom, body : ListBuffer[Atom]) {
   override def toString: String = {
     val bodyStr = if (body.isEmpty) "" else " :- " + body.mkString(", ")
     s"$head$bodyStr."
@@ -18,5 +20,5 @@ private def parseQuery(id: Int, rawQuery: String): Query = {
       throw new IllegalArgumentException("Invalid atom format.")
     )
   )
-  Query(id, head, body)
+  Query(id, head, ListBuffer.from(body))
 }
