@@ -5,6 +5,11 @@ case class Query(queryId : Int, head : Atom, body : ListBuffer[Atom]) {
     val bodyStr = if (body.isEmpty) "" else " :- " + body.mkString(", ")
     s"$head$bodyStr."
   }
+  
+  def showBody: String = {
+    if (body.isEmpty) "empty"
+    else body.mkString(", ")
+  }
 }
 
 

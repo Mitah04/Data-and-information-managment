@@ -1,6 +1,8 @@
+import TestType.Acyclicity
+
 import scala.collection.mutable.ListBuffer
 
-object GyoAlgo {
+object AcyclicityTest {
 
   var logger: ListBuffer[String] = ListBuffer()
   
@@ -9,16 +11,15 @@ object GyoAlgo {
 
   def isAcyclic(query: Query): Boolean = {
     logger.clear()
-    logger += s"GYO for query: ${query.head}\n"
+    logger += s"GYO for query: ${query.showBody}"
     var ear = findEar(query)
     while (ear.isDefined) {
-      logger += s"Remove ear: ${ear.get}"
       query.body -= ear.get // suppression directe
-      logger += s".\n Current query is: ${query}\n"
+      logger += s"Current query is: ${query.showBody}"
       ear = findEar(query)
     }
     if (query.body.nonEmpty) logger += "No more ears found"
-    writeInFile(c, logger.mkString("\n"))
+    writeInFile(generateFileName(Acyclicity, query.queryId), logger.mkString("\n"))
     query.body.isEmpty
   }
 
@@ -42,6 +43,7 @@ object GyoAlgo {
     }
 
     if (sharedVariables.isEmpty) {
+      logger += s"Remove ear: ${atom}"
       Right(true)
     }
     else {
@@ -50,7 +52,7 @@ object GyoAlgo {
       }
 
       if (potentialWitnesses.nonEmpty) {
-        logger += s" with witness: ${potentialWitnesses.head}"
+        logger += s"Remove ear: ${atom} with witness: ${potentialWitnesses.head}"
         Left(potentialWitnesses.head)
       }
       else {
