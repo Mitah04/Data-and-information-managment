@@ -1,0 +1,1 @@
+Answer() :- A(x, y), B(y, z), C(z, w, u, v).

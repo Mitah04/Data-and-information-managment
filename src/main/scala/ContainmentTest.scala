@@ -5,8 +5,10 @@ import scala.util.boundary.Label
 
 object ContainmentTest {
   val logger = ListBuffer[String]()
+  val resultsTxtDir = "results/txt-results/"
 
-  def isContained(query1: Query, query2: Query): Boolean = {
+
+  def isContainedIn(query1: Query, query2: Query): Int = {
     logger.clear()
     logger += s"q1 is : ${query1}"
     logger += s"q2 is : ${query2}"
@@ -19,8 +21,8 @@ object ContainmentTest {
         applyMap(q2.head.terms, h) == q1.head.terms
     }
     setLogger(q1, q2, res, homomorphism)
-    writeInFile(generateFileName(Containment, query1.queryId, Some(query2.queryId)), logger.mkString("\n"))
-    res
+    writeInFile(resultsTxtDir+generateFileName(Containment, query1.queryId, Some(query2.queryId)), logger.mkString("\n"))
+    if (res) 1 else 0
   }
 
   private def findHomomorphism(q1: Query, q2: Query, h0: Map[String, String]): Option[Map[String, String]] = {
@@ -79,7 +81,6 @@ object ContainmentTest {
       body = q.body.map(a => applyMapToAtom(a, h))
     )
 
-  
   private def setLogger(
                          query1: Query,
                          query2: Query,
@@ -106,8 +107,10 @@ object ContainmentTest {
       db.foreach(f => logger += f.toString)
 
       val tup = headTuple.mkString(", ")
-      logger += s"Then q1(D) contains the tuple ($tup)."
-
+      if (tup.isEmpty)
+        logger += s"Then q1(D) contains the tuple ()."
+      else
+        logger += s"Then q1(D) contains the tuple ($tup)."
       val outQ2 = evalQueryOnDB(query2, db)
       if (outQ2.isEmpty)
         logger += s"However, ($tup) is not in q2(D) since q2(D) is empty."
@@ -144,10 +147,38 @@ object ContainmentTest {
 
   private def canonicalDBOf(q: Query): (List[Atom], List[String]) = {
     val vars = (q.head.terms ++ q.body.flatMap(_.terms)).distinct
-    val consts = LazyList.from(0).map(i => s"'${('X' + (i % 26)).toChar}").take(vars.length).toList
+    val consts = LazyList.from(0).map { i =>
+      val char = ('A' + (i % 26)).toChar
+      val num = i / 26
+      if (num == 0) s"'$char'" else s"'$char$num'"
+    }.take(vars.length).toList
     val sigma = vars.zip(consts).toMap
     val db = q.body.map(a => a.copy(terms = a.terms.map(sigma))).toList
     val headT = q.head.terms.map(sigma)
     (db, headT)
+  }
+
+
+  /**
+   * Checks if q1 is contained in q2.
+   * Does NOT perform logging or file writing. This is the function that
+   * other algorithms (like MinimalityTest) should call.
+   *
+   * @return Some(homomorphism) if q1 is contained in q2, None otherwise.
+   */
+  def check(q1: Query, q2: Query): Option[Map[String, String]] = {
+    // The Homomorphism Theorem states q1 ⊆ q2 if and only if there is a homomorphism h: q2 -> q1.
+    val homomorphismOpt = findHomomorphism(q1, q2, Map.empty)
+
+    // After finding a body homomorphism, we must also check the head mapping.
+    homomorphismOpt.filter { h =>
+      val headsAreCompatible = q1.head.relationName == q2.head.relationName && q1.head.arity == q2.head.arity
+      if (!headsAreCompatible) false
+      else {
+        // Check if the mapped head of q2 equals the head of q1
+        val mappedQ2HeadTerms = q2.head.terms.map(term => h.getOrElse(term, term))
+        mappedQ2HeadTerms == q1.head.terms
+      }
+    }
   }
 }

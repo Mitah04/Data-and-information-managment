@@ -1,0 +1,1 @@
+Answer(x) :- R(x, y), R(y, z), R(z, x).

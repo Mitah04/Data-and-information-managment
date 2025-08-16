@@ -1,0 +1,1 @@
+Answer(z, z) :- E(z, y), E(y, z), E(y, w).

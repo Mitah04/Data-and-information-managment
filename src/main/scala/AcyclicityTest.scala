@@ -5,11 +5,10 @@ import scala.collection.mutable.ListBuffer
 object AcyclicityTest {
 
   var logger: ListBuffer[String] = ListBuffer()
-  
-  
+  val resultsTxtDir = "results/txt-results/"
 
 
-  def isAcyclic(query: Query): Boolean = {
+  def isAcyclic(query: Query): Int = {
     logger.clear()
     logger += s"GYO for query: ${query.showBody}"
     var ear = findEar(query)
@@ -19,8 +18,9 @@ object AcyclicityTest {
       ear = findEar(query)
     }
     if (query.body.nonEmpty) logger += "No more ears found"
-    writeInFile(generateFileName(Acyclicity, query.queryId), logger.mkString("\n"))
-    query.body.isEmpty
+    writeInFile(resultsTxtDir+generateFileName(Acyclicity, query.queryId), logger.mkString("\n"))
+    if (query.body.isEmpty) 1 else 0
+
   }
 
 
